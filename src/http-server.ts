@@ -5,6 +5,7 @@
 
 import express from 'express';
 import cors from 'cors';
+import session from 'express-session';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { 
@@ -14,6 +15,9 @@ import {
   McpError 
 } from '@modelcontextprotocol/sdk/types.js';
 import * as dotenv from 'dotenv';
+
+import { requireOAuth } from './middleware/oauth-middleware';
+import oauthRouter from './routes/oauth-routes';
 
 import { GHLApiClient } from './clients/ghl-api-client';
 import { ContactTools } from './tools/contact-tools';
@@ -125,6 +129,18 @@ class GHLMCPHttpServer {
 
     // Parse JSON requests
     this.app.use(express.json());
+
+    // Session middleware (required for OAuth token storage)
+    this.app.use(session({
+      secret: process.env.SESSION_SECRET || 'ghl-mcp-session-secret-change-in-production',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      },
+    }));
 
     // Request logging
     this.app.use((req, res, next) => {
@@ -296,7 +312,10 @@ class GHLMCPHttpServer {
    * Setup HTTP routes
    */
   private setupRoutes(): void {
-    // Health check endpoint
+    // ── OAuth routes (public – no auth required) ──────────────────────────
+    this.app.use('/oauth', oauthRouter);
+
+    // Health check endpoint (public)
     this.app.get('/health', (req, res) => {
       res.json({ 
         status: 'healthy',
@@ -320,8 +339,8 @@ class GHLMCPHttpServer {
       });
     });
 
-    // Tools listing endpoint
-    this.app.get('/tools', async (req, res) => {
+    // Tools listing endpoint (protected)
+    this.app.get('/tools', requireOAuth, async (req, res) => {
       try {
         const contactTools = this.contactTools.getToolDefinitions();
         const conversationTools = this.conversationTools.getToolDefinitions();
@@ -382,9 +401,9 @@ class GHLMCPHttpServer {
       }
     };
 
-    // Handle both GET and POST for SSE (MCP protocol requirements)
-    this.app.get('/sse', handleSSE);
-    this.app.post('/sse', handleSSE);
+    // Handle both GET and POST for SSE (MCP protocol requirements) – protected
+    this.app.get('/sse', requireOAuth, handleSSE);
+    this.app.post('/sse', requireOAuth, handleSSE);
 
     // Root endpoint with server info
     this.app.get('/', (req, res) => {
@@ -393,10 +412,13 @@ class GHLMCPHttpServer {
         version: '1.0.0',
         status: 'running',
         endpoints: {
-          health: '/health',
-          capabilities: '/capabilities',
-          tools: '/tools',
-          sse: '/sse'
+          health: '/health (public)',
+          capabilities: '/capabilities (public)',
+          tools: '/tools (protected)',
+          sse: '/sse (protected)',
+          oauthLogin: '/oauth/login',
+          oauthCallback: '/oauth/callback',
+          oauthLogout: '/oauth/logout',
         },
         tools: this.getToolsCount(),
         documentation: 'https://github.com/your-repo/ghl-mcp-server'
