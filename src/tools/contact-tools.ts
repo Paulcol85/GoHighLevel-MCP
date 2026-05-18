@@ -78,7 +78,23 @@ export class ContactTools {
             email: { type: 'string', description: 'Contact email address' },
             phone: { type: 'string', description: 'Contact phone number' },
             tags: { type: 'array', items: { type: 'string' }, description: 'Tags to assign to contact' },
-            source: { type: 'string', description: 'Source of the contact' }
+            source: { type: 'string', description: 'Source of the contact' },
+            address: {
+              type: 'object',
+              description: 'Contact address information',
+              properties: {
+                street: { type: 'string', description: 'Street address' },
+                city: { type: 'string', description: 'City' },
+                state: { type: 'string', description: 'State or province' },
+                postalCode: { type: 'string', description: 'Postal or ZIP code' },
+                country: { type: 'string', description: 'Country' }
+              }
+            },
+            customFields: {
+              type: 'object',
+              description: 'Custom field values as key-value pairs where keys are custom field IDs',
+              additionalProperties: true
+            }
           },
           required: ['email']
         }
@@ -118,7 +134,23 @@ export class ContactTools {
             lastName: { type: 'string', description: 'Contact last name' },
             email: { type: 'string', description: 'Contact email address' },
             phone: { type: 'string', description: 'Contact phone number' },
-            tags: { type: 'array', items: { type: 'string' }, description: 'Tags to assign to contact' }
+            tags: { type: 'array', items: { type: 'string' }, description: 'Tags to assign to contact' },
+            address: {
+              type: 'object',
+              description: 'Contact address information',
+              properties: {
+                street: { type: 'string', description: 'Street address' },
+                city: { type: 'string', description: 'City' },
+                state: { type: 'string', description: 'State or province' },
+                postalCode: { type: 'string', description: 'Postal or ZIP code' },
+                country: { type: 'string', description: 'Country' }
+              }
+            },
+            customFields: {
+              type: 'object',
+              description: 'Custom field values as key-value pairs where keys are custom field IDs',
+              additionalProperties: true
+            }
           },
           required: ['contactId']
         }
@@ -319,7 +351,23 @@ export class ContactTools {
             phone: { type: 'string', description: 'Contact phone number' },
             tags: { type: 'array', items: { type: 'string' }, description: 'Tags to assign to contact' },
             source: { type: 'string', description: 'Source of the contact' },
-            assignedTo: { type: 'string', description: 'User ID to assign contact to' }
+            assignedTo: { type: 'string', description: 'User ID to assign contact to' },
+            address: {
+              type: 'object',
+              description: 'Contact address information',
+              properties: {
+                street: { type: 'string', description: 'Street address' },
+                city: { type: 'string', description: 'City' },
+                state: { type: 'string', description: 'State or province' },
+                postalCode: { type: 'string', description: 'Postal or ZIP code' },
+                country: { type: 'string', description: 'Country' }
+              }
+            },
+            customFields: {
+              type: 'object',
+              description: 'Custom field values as key-value pairs where keys are custom field IDs',
+              additionalProperties: true
+            }
           }
         }
       },
@@ -578,6 +626,10 @@ export class ContactTools {
 
   // Basic Contact Management
   private async createContact(params: MCPCreateContactParams): Promise<GHLContact> {
+    const customFields = params.customFields
+      ? Object.entries(params.customFields).map(([id, value]) => ({ id, field_value: value }))
+      : undefined;
+
     const response = await this.ghlClient.createContact({
         locationId: this.ghlClient.getConfig().locationId,
         firstName: params.firstName,
@@ -585,7 +637,13 @@ export class ContactTools {
         email: params.email,
         phone: params.phone,
         tags: params.tags,
-      source: params.source
+        source: params.source,
+        address1: params.address?.street,
+        city: params.address?.city,
+        state: params.address?.state,
+        postalCode: params.address?.postalCode,
+        country: params.address?.country,
+        customFields
     });
 
     if (!response.success) {
@@ -624,12 +682,22 @@ export class ContactTools {
   }
 
   private async updateContact(params: MCPUpdateContactParams): Promise<GHLContact> {
+    const customFields = params.customFields
+      ? Object.entries(params.customFields).map(([id, value]) => ({ id, field_value: value }))
+      : undefined;
+
     const response = await this.ghlClient.updateContact(params.contactId, {
       firstName: params.firstName,
       lastName: params.lastName,
       email: params.email,
       phone: params.phone,
-      tags: params.tags
+      tags: params.tags,
+      address1: params.address?.street,
+      city: params.address?.city,
+      state: params.address?.state,
+      postalCode: params.address?.postalCode,
+      country: params.address?.country,
+      customFields
     });
 
     if (!response.success) {
@@ -801,6 +869,10 @@ export class ContactTools {
 
   // Advanced Operations
   private async upsertContact(params: MCPUpsertContactParams): Promise<GHLUpsertContactResponse> {
+    const customFields = params.customFields
+      ? Object.entries(params.customFields).map(([id, value]) => ({ id, field_value: value }))
+      : undefined;
+
     const response = await this.ghlClient.upsertContact({
       locationId: this.ghlClient.getConfig().locationId,
       firstName: params.firstName,
@@ -808,16 +880,16 @@ export class ContactTools {
       name: params.name,
       email: params.email,
       phone: params.phone,
-      address1: params.address,
-      city: params.city,
-      state: params.state,
-      country: params.country,
-      postalCode: params.postalCode,
+      address1: params.address?.street,
+      city: params.address?.city,
+      state: params.address?.state,
+      country: params.address?.country,
+      postalCode: params.address?.postalCode,
       website: params.website,
       timezone: params.timezone,
       companyName: params.companyName,
       tags: params.tags,
-      customFields: params.customFields,
+      customFields,
       source: params.source,
       assignedTo: params.assignedTo
     });
