@@ -107,6 +107,10 @@ export class OpportunityTools {
               type: 'string',
               description: 'ID of the pipeline this opportunity belongs to'
             },
+            pipelineStageId: {
+              type: 'string',
+              description: 'ID of the specific pipeline stage for this opportunity (optional - can be set during creation)'
+            },
             contactId: {
               type: 'string',
               description: 'ID of the contact associated with this opportunity'
@@ -182,7 +186,7 @@ export class OpportunityTools {
             },
             pipelineStageId: {
               type: 'string',
-              description: 'Updated pipeline stage ID'
+              description: 'Updated pipeline stage ID (useful for moving opportunities between stages)'
             },
             status: {
               type: 'string',
@@ -618,4 +622,4 @@ export class OpportunityTools {
       throw new Error(`Failed to remove opportunity followers: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-} 
+}
