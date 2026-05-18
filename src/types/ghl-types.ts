@@ -416,6 +416,15 @@ export interface GHLFollowersResponse {
   followersRemoved?: string[];
 }
 
+// MCP Contact Address
+export interface MCPContactAddress {
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+}
+
 // MCP Tool Parameters - Contact Operations
 export interface MCPCreateContactParams {
   firstName?: string;
@@ -424,6 +433,8 @@ export interface MCPCreateContactParams {
   phone?: string;
   tags?: string[];
   source?: string;
+  address?: MCPContactAddress;
+  customFields?: Record<string, any>;
 }
 
 export interface MCPSearchContactsParams {
@@ -440,6 +451,8 @@ export interface MCPUpdateContactParams {
   email?: string;
   phone?: string;
   tags?: string[];
+  address?: MCPContactAddress;
+  customFields?: Record<string, any>;
 }
 
 export interface MCPAddContactTagsParams {
@@ -527,18 +540,14 @@ export interface MCPUpsertContactParams {
   name?: string;
   email?: string;
   phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  postalCode?: string;
   website?: string;
   timezone?: string;
   companyName?: string;
   tags?: string[];
-  customFields?: GHLCustomField[];
   source?: string;
   assignedTo?: string;
+  address?: MCPContactAddress;
+  customFields?: Record<string, any>;
 }
 
 export interface MCPGetDuplicateContactParams {
