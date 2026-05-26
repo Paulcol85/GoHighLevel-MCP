@@ -78,7 +78,12 @@ export class ContactTools {
             email: { type: 'string', description: 'Contact email address' },
             phone: { type: 'string', description: 'Contact phone number' },
             tags: { type: 'array', items: { type: 'string' }, description: 'Tags to assign to contact' },
-            source: { type: 'string', description: 'Source of the contact' }
+            source: { type: 'string', description: 'Source of the contact' },
+            address1: { type: 'string', description: 'Street address' },
+            city: { type: 'string', description: 'City' },
+            state: { type: 'string', description: 'State or province' },
+            postalCode: { type: 'string', description: 'Postal or zip code' },
+            country: { type: 'string', description: 'Country code (e.g. CA, US)' }
           },
           required: ['email']
         }
@@ -118,7 +123,12 @@ export class ContactTools {
             lastName: { type: 'string', description: 'Contact last name' },
             email: { type: 'string', description: 'Contact email address' },
             phone: { type: 'string', description: 'Contact phone number' },
-            tags: { type: 'array', items: { type: 'string' }, description: 'Tags to assign to contact' }
+            tags: { type: 'array', items: { type: 'string' }, description: 'Tags to assign to contact' },
+            address1: { type: 'string', description: 'Street address' },
+            city: { type: 'string', description: 'City' },
+            state: { type: 'string', description: 'State or province' },
+            postalCode: { type: 'string', description: 'Postal or zip code' },
+            country: { type: 'string', description: 'Country code (e.g. CA, US)' }
           },
           required: ['contactId']
         }
@@ -585,7 +595,12 @@ export class ContactTools {
         email: params.email,
         phone: params.phone,
         tags: params.tags,
-      source: params.source
+        source: params.source,
+        address1: params.address1,
+        city: params.city,
+        state: params.state,
+        postalCode: params.postalCode,
+        country: params.country
     });
 
     if (!response.success) {
@@ -629,7 +644,12 @@ export class ContactTools {
       lastName: params.lastName,
       email: params.email,
       phone: params.phone,
-      tags: params.tags
+      tags: params.tags,
+      address1: params.address1,
+      city: params.city,
+      state: params.state,
+      postalCode: params.postalCode,
+      country: params.country
     });
 
     if (!response.success) {
@@ -969,4 +989,4 @@ export class ContactTools {
 
     return response.data!;
   }
-} 
+}
