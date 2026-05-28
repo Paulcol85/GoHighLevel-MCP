@@ -65,7 +65,7 @@ export async function requireOAuth(
   next: NextFunction
 ): Promise<void> {
   // 1. Try Authorization header first (useful for API / MCP clients)
-  const headerToken = extractBearerToken(req);
+    const headerToken = extractBearerToken(req);
   if (headerToken) {
     const apiKey = process.env.GHL_API_KEY;
     if (apiKey && headerToken === apiKey) {
