@@ -1,37 +1,18 @@
-# Build stage
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install ALL dependencies (including devDependencies for TypeScript)
-RUN npm install
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN npm run build
-
-# Production stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files and install production-only dependencies
+# Copy package files and install ALL deps (including devDeps for ts-node + typescript)
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm install
 
-# Copy compiled output from build stage
-COPY --from=builder /app/dist ./dist
+# Copy source
+COPY . .
 
-# Expose the port
 EXPOSE 8000
 
-# Set environment to production
+# Set production env AFTER npm install so devDeps are installed above
 ENV NODE_ENV=production
 
-# Start the HTTP server
+# Run TypeScript directly - no build step, no type checking
 CMD ["npm", "start"]
