@@ -129,6 +129,7 @@ class GHLMCPHttpServer {
 
     // Parse JSON requests
     this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
 
     // Session middleware (required for OAuth token storage)
     this.app.use(session({
@@ -312,6 +313,19 @@ class GHLMCPHttpServer {
    * Setup HTTP routes
    */
   private setupRoutes(): void {
+        // OAuth 2.0 Authorization Server Metadata (RFC 8414) – required by claude.ai
+    this.app.get('/.well-known/oauth-authorization-server', (req, res) => {
+      const base = `${req.protocol}://${req.get('host')}`;
+      res.json({
+        issuer: base,
+        authorization_endpoint: `${base}/oauth/authorize`,
+        token_endpoint: `${base}/oauth/token`,
+        response_types_supported: ['code'],
+        grant_types_supported: ['authorization_code'],
+        code_challenge_methods_supported: ['S256'],
+        token_endpoint_auth_methods_supported: ['none'],
+      });
+    });
     // ── OAuth routes (public – no auth required) ──────────────────────────
     this.app.use('/oauth', oauthRouter);
 
