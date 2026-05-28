@@ -195,4 +195,91 @@ router.post('/logout', (req: Request, res: Response) => {
   });
 });
 
+
+// ── MCP OAuth 2.0 Server (for claude.ai connector) ─────────────────────────
+import crypto from 'crypto';
+
+// In-memory auth code store (single-user, short-lived)
+const authCodes = new Map<string, number>(); // code -> expiry timestamp
+
+/**
+ * GET /oauth/authorize
+ * claude.ai lands here to start the OAuth flow
+ */
+router.get('/authorize', (req: Request, res: Response) => {
+  const { redirect_uri, state, code_challenge, code_challenge_method, response_type, client_id } = req.query as Record<string, string>;
+
+  if (response_type !== 'code') {
+    res.status(400).json({ error: 'unsupported_response_type' });
+    return;
+  }
+
+  const html = `<!DOCTYPE html>
+<html><head><title>Authorize GoHighLevel MCP</title>
+<style>body{font-family:sans-serif;max-width:420px;margin:80px auto;padding:24px;text-align:center}
+h2{margin-bottom:8px}p{color:#555;margin-bottom:24px}
+.btn{background:#0066cc;color:#fff;padding:12px 28px;border:none;border-radius:6px;font-size:16px;cursor:pointer}</style>
+</head><body>
+<h2>GoHighLevel MCP</h2>
+<p>Allow <strong>${client_id || 'Claude'}</strong> to access your GoHighLevel data?</p>
+<form method="post" action="/oauth/authorize/approve">
+  <input type="hidden" name="redirect_uri" value="${redirect_uri || ''}">
+  <input type="hidden" name="state" value="${state || ''}">
+  <input type="hidden" name="code_challenge" value="${code_challenge || ''}">
+  <input type="hidden" name="code_challenge_method" value="${code_challenge_method || ''}">
+  <button class="btn" type="submit">Authorize</button>
+</form></body></html>`;
+  res.send(html);
+});
+
+/**
+ * POST /oauth/authorize/approve
+ * User clicks Authorize → redirect back to claude.ai with code
+ */
+router.post('/authorize/approve', (req: Request, res: Response) => {
+  const { redirect_uri, state } = req.body as Record<string, string>;
+
+  if (!redirect_uri) {
+    res.status(400).json({ error: 'missing redirect_uri' });
+    return;
+  }
+
+  const code = crypto.randomBytes(32).toString('hex');
+  authCodes.set(code, Date.now() + 5 * 60 * 1000); // 5-minute expiry
+
+  const url = new URL(redirect_uri);
+  url.searchParams.set('code', code);
+  if (state) url.searchParams.set('state', state);
+
+  res.redirect(url.toString());
+});
+
+/**
+ * POST /oauth/token
+ * claude.ai exchanges the code for an access token
+ */
+router.post('/token', (req: Request, res: Response) => {
+  const { grant_type, code } = req.body as Record<string, string>;
+
+  if (grant_type !== 'authorization_code') {
+    res.status(400).json({ error: 'unsupported_grant_type' });
+    return;
+  }
+
+  const expiry = authCodes.get(code);
+  if (!expiry || Date.now() > expiry) {
+    authCodes.delete(code);
+    res.status(400).json({ error: 'invalid_grant' });
+    return;
+  }
+
+  authCodes.delete(code); // single-use
+
+  res.json({
+    access_token: process.env.GHL_API_KEY,
+    token_type: 'bearer',
+    expires_in: 2592000, // 30 days
+  });
+});
+
 export default router;
