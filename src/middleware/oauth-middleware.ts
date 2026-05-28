@@ -67,6 +67,11 @@ export async function requireOAuth(
   // 1. Try Authorization header first (useful for API / MCP clients)
   const headerToken = extractBearerToken(req);
   if (headerToken) {
+    const apiKey = process.env.GHL_API_KEY;
+    if (apiKey && headerToken === apiKey) {
+      res.locals.accessToken = headerToken;
+      return next();
+    }
     const valid = await validateToken(headerToken);
     if (valid) {
       // Attach token to request locals for downstream use
