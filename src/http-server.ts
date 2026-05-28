@@ -36,7 +36,7 @@ import { CustomFieldV2Tools } from './tools/custom-field-v2-tools';
 import { WorkflowTools } from './tools/workflow-tools';
 import { SurveyTools } from './tools/survey-tools';
 import { StoreTools } from './tools/store-tools';
-import { ProductsTools } from './tools/products-tools.js';
+import { ProductsTools } from './tools/products-tools';
 import { GHLConfig } from './types/ghl-types';
 
 // Load environment variables
@@ -313,7 +313,7 @@ class GHLMCPHttpServer {
    * Setup HTTP routes
    */
   private setupRoutes(): void {
-        // OAuth 2.0 Authorization Server Metadata (RFC 8414) – required by claude.ai
+        // OAuth 2.0 Authorization Server Metadata (RFC 8414) - required by claude.ai
     this.app.get('/.well-known/oauth-authorization-server', (req, res) => {
       const base = `${req.protocol}://${req.get('host')}`;
       res.json({
@@ -326,7 +326,7 @@ class GHLMCPHttpServer {
         token_endpoint_auth_methods_supported: ['none'],
       });
     });
-    // ── OAuth routes (public – no auth required) ──────────────────────────
+    // ?? OAuth routes (public - no auth required) ??????????????????????????
     this.app.use('/oauth', oauthRouter);
 
     // Health check endpoint (public)
@@ -415,7 +415,7 @@ class GHLMCPHttpServer {
       }
     };
 
-    // Handle both GET and POST for SSE (MCP protocol requirements) – protected
+    // Handle both GET and POST for SSE (MCP protocol requirements) - protected
     this.app.get('/sse', handleSSE);
     this.app.post('/sse', handleSSE);
 
@@ -707,10 +707,10 @@ class GHLMCPHttpServer {
       
       const result = await this.ghlClient.testConnection();
       
-      console.log('[GHL MCP HTTP] ✅ GHL API connection successful');
+      console.log('[GHL MCP HTTP] ? GHL API connection successful');
       console.log(`[GHL MCP HTTP] Connected to location: ${result.data?.locationId}`);
     } catch (error) {
-      console.error('[GHL MCP HTTP] ❌ GHL API connection failed:', error);
+      console.error('[GHL MCP HTTP] ? GHL API connection failed:', error);
       throw new Error(`Failed to connect to GHL API: ${error}`);
     }
   }
@@ -719,7 +719,7 @@ class GHLMCPHttpServer {
    * Start the HTTP server
    */
   async start(): Promise<void> {
-    console.log('🚀 Starting GoHighLevel MCP HTTP Server...');
+    console.log('?? Starting GoHighLevel MCP HTTP Server...');
     console.log('=========================================');
     
     try {
@@ -728,16 +728,16 @@ class GHLMCPHttpServer {
       
       // Start HTTP server
       this.app.listen(this.port, '0.0.0.0', () => {
-        console.log('✅ GoHighLevel MCP HTTP Server started successfully!');
-        console.log(`🌐 Server running on: http://0.0.0.0:${this.port}`);
-        console.log(`🔗 SSE Endpoint: http://0.0.0.0:${this.port}/sse`);
-        console.log(`📋 Tools Available: ${this.getToolsCount().total}`);
-        console.log('🎯 Ready for ChatGPT integration!');
+        console.log('? GoHighLevel MCP HTTP Server started successfully!');
+        console.log(`?? Server running on: http://0.0.0.0:${this.port}`);
+        console.log(`?? SSE Endpoint: http://0.0.0.0:${this.port}/sse`);
+        console.log(`?? Tools Available: ${this.getToolsCount().total}`);
+        console.log('?? Ready for ChatGPT integration!');
         console.log('=========================================');
       });
       
     } catch (error) {
-      console.error('❌ Failed to start GHL MCP HTTP Server:', error);
+      console.error('? Failed to start GHL MCP HTTP Server:', error);
       process.exit(1);
     }
   }
@@ -769,7 +769,7 @@ async function main(): Promise<void> {
     await server.start();
     
   } catch (error) {
-    console.error('💥 Fatal error:', error);
+    console.error('?? Fatal error:', error);
     process.exit(1);
   }
 }
